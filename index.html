@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>立体ブロック数え - 空間認識トレーニング</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -17,7 +17,7 @@
         .canvas-container {
             position: relative;
             width: 100%;
-            max-width: 500px;
+            max-width: 400px;
             aspect-ratio: 1 / 1;
             margin: 0 auto;
             background-color: #ffffff;
@@ -34,114 +34,134 @@
             from { transform: translateY(0); }
             to { transform: translateY(-10px); }
         }
+        /* 数字キーパッドのスタイル */
+        .keypad-btn {
+            @apply flex items-center justify-center bg-white border border-slate-200 text-slate-700 text-xl font-bold rounded-xl h-12 active:bg-slate-100 transition-colors shadow-sm;
+        }
     </style>
 </head>
-<body class="flex flex-col items-center min-h-screen p-4">
+<body class="flex flex-col items-center min-h-screen p-2 sm:p-4">
 
     <!-- Header -->
-    <header class="w-full max-w-2xl text-center mb-4">
-        <h1 class="text-3xl font-bold text-slate-800 mb-2">立体ブロック数え</h1>
-        <p class="text-slate-600">空間認識力を鍛えるトレーニング</p>
+    <header class="w-full max-w-2xl text-center mb-2">
+        <h1 class="text-2xl sm:text-3xl font-bold text-slate-800">立体ブロック数え</h1>
     </header>
 
     <!-- Main Game UI -->
-    <main class="w-full max-w-2xl bg-white rounded-3xl shadow-xl p-6 flex flex-col gap-4 border border-slate-100 min-h-[500px] justify-center">
+    <main class="w-full max-w-md bg-white rounded-3xl shadow-xl p-4 flex flex-col gap-3 border border-slate-100">
         
         <!-- Stats Bar -->
-        <div id="game-stats" class="hidden flex justify-between items-center bg-slate-50 p-3 rounded-2xl border border-slate-200">
+        <div id="game-stats" class="hidden flex justify-between items-center bg-slate-50 p-2 rounded-2xl border border-slate-200">
             <div class="flex flex-col">
-                <span class="text-xs text-slate-400 font-bold uppercase">Progress</span>
-                <div class="text-lg font-bold text-slate-700">
-                    問題 <span id="current-q">1</span> / <span id="total-q">20</span>
+                <span class="text-[10px] text-slate-400 font-bold uppercase leading-none mb-1">Progress</span>
+                <div class="text-sm font-bold text-slate-700 leading-none">
+                    <span id="current-q">1</span> / 20
                 </div>
             </div>
             <div class="flex flex-col items-center">
-                <span class="text-xs text-indigo-400 font-bold uppercase">Score</span>
-                <div class="text-lg font-bold text-indigo-600">
+                <span class="text-[10px] text-indigo-400 font-bold uppercase leading-none mb-1">Score</span>
+                <div class="text-sm font-bold text-indigo-600 leading-none">
                     正解: <span id="score">0</span>
                 </div>
             </div>
-            <button onclick="backToTitle()" class="text-xs bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 px-3 py-2 rounded-lg font-bold transition-colors shadow-sm">
+            <button onclick="backToTitle()" class="text-[10px] bg-white border border-slate-200 text-slate-600 px-2 py-1 rounded-lg font-bold">
                 中断
             </button>
         </div>
 
         <!-- Rule Explanation Screen -->
-        <div id="rule-screen" class="flex flex-col gap-6 py-4">
-            <div class="bg-indigo-50 p-6 rounded-2xl border border-indigo-100">
-                <h2 class="text-xl font-bold text-indigo-800 mb-4 flex items-center gap-2">
-                    <span>📏</span> 数え方のルール
+        <div id="rule-screen" class="flex flex-col gap-4 py-2">
+            <div class="bg-indigo-50 p-4 rounded-2xl border border-indigo-100">
+                <h2 class="text-lg font-bold text-indigo-800 mb-3 flex items-center gap-2">
+                    <span>📏</span> ルール
                 </h2>
-                <ul class="space-y-4 text-slate-700">
-                    <li class="flex gap-3">
-                        <span class="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-sm">1</span>
-                        <p><b>空中には浮きません</b><br><span class="text-sm opacity-80">すべてのブロックは、床か別のブロックの上に積み重なっています。</span></p>
+                <ul class="space-y-3 text-sm text-slate-700">
+                    <li class="flex gap-2">
+                        <span class="bg-indigo-600 text-white w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px]">1</span>
+                        <p><b>空中には浮きません</b></p>
                     </li>
-                    <li class="flex gap-3">
-                        <span class="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-sm">2</span>
-                        <p><b>階段状に並んでいます</b><br><span class="text-sm opacity-80">奥の列が最も高く、手前に来るほど低くなる（または同じ高さ）ように配置されています。</span></p>
+                    <li class="flex gap-2">
+                        <span class="bg-indigo-600 text-white w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px]">2</span>
+                        <p><b>階段状に並んでいます</b></p>
                     </li>
-                    <li class="flex gap-3">
-                        <span class="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-sm">3</span>
-                        <p><b>見えないブロックはありません</b><br><span class="text-sm opacity-80">手前のブロックの真後ろに隠れて、全く見えないブロックは存在しません。</span></p>
+                    <li class="flex gap-2">
+                        <span class="bg-indigo-600 text-white w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px]">3</span>
+                        <p><b>隠れたブロックはありません</b></p>
                     </li>
                 </ul>
             </div>
-            <button onclick="showLevelSelect()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl font-bold text-xl transition-all shadow-lg shadow-indigo-200">
+            <button onclick="showLevelSelect()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl font-bold text-lg shadow-lg">
                 理解しました！進む ➔
             </button>
         </div>
 
         <!-- Start Screen (Level Select) -->
-        <div id="start-screen" class="hidden flex flex-col items-center gap-4 py-10">
-            <h2 class="text-xl font-bold text-slate-700 text-center mb-2">難易度を選択してください</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
-                <button onclick="startGame('easy')" class="p-6 bg-white hover:border-emerald-400 text-slate-700 rounded-2xl border-2 border-slate-100 transition-all font-bold shadow-sm">
-                    <div class="text-2xl mb-1">初級</div>
-                    <div class="text-xs opacity-60">3x3 / 最大2段</div>
+        <div id="start-screen" class="hidden flex flex-col items-center gap-3 py-6">
+            <h2 class="text-lg font-bold text-slate-700 text-center mb-2">難易度を選択</h2>
+            <div class="flex flex-col gap-3 w-full">
+                <button onclick="startGame('easy')" class="flex items-center justify-between p-4 bg-white hover:border-emerald-400 text-slate-700 rounded-2xl border-2 border-slate-100 transition-all font-bold shadow-sm">
+                    <div class="text-left">
+                        <div class="text-lg">初級</div>
+                        <div class="text-[10px] opacity-60">3x3 / 最大2段</div>
+                    </div>
+                    <span class="text-emerald-500">➔</span>
                 </button>
-                <button onclick="startGame('medium')" class="p-6 bg-white hover:border-indigo-400 text-slate-700 rounded-2xl border-2 border-slate-100 transition-all font-bold shadow-sm">
-                    <div class="text-2xl mb-1">中級</div>
-                    <div class="text-xs opacity-60">4x4 / 最大3段</div>
+                <button onclick="startGame('medium')" class="flex items-center justify-between p-4 bg-white hover:border-indigo-400 text-slate-700 rounded-2xl border-2 border-slate-100 transition-all font-bold shadow-sm">
+                    <div class="text-left">
+                        <div class="text-lg">中級</div>
+                        <div class="text-[10px] opacity-60">4x4 / 最大3段</div>
+                    </div>
+                    <span class="text-indigo-500">➔</span>
                 </button>
-                <button onclick="startGame('hard')" class="p-6 bg-white hover:border-rose-400 text-slate-700 rounded-2xl border-2 border-slate-100 transition-all font-bold shadow-sm">
-                    <div class="text-2xl mb-1">上級</div>
-                    <div class="text-xs opacity-60">5x5 / 最大4段</div>
+                <button onclick="startGame('hard')" class="flex items-center justify-between p-4 bg-white hover:border-rose-400 text-slate-700 rounded-2xl border-2 border-slate-100 transition-all font-bold shadow-sm">
+                    <div class="text-left">
+                        <div class="text-lg">上級</div>
+                        <div class="text-[10px] opacity-60">5x5 / 最大4段</div>
+                    </div>
+                    <span class="text-rose-500">➔</span>
                 </button>
             </div>
         </div>
 
         <!-- Game Area -->
-        <div id="game-area" class="hidden flex flex-col gap-4">
-            <div class="canvas-container rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-white">
+        <div id="game-area" class="hidden flex flex-col gap-3">
+            <div class="canvas-container rounded-2xl overflow-hidden border border-slate-200 bg-white">
                 <canvas id="gameCanvas"></canvas>
             </div>
 
-            <div id="interaction-container" class="flex flex-col gap-3">
-                <div id="answer-controls" class="flex gap-2">
-                    <input 
-                        type="text" 
-                        id="answer-input" 
-                        inputmode="numeric" 
-                        placeholder="個数" 
-                        class="flex-1 text-3xl p-4 border-2 border-slate-200 rounded-2xl focus:border-indigo-500 outline-none text-center font-bold"
-                    >
-                    <button 
-                        id="submit-btn"
-                        onclick="checkAnswer()" 
-                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-2xl font-bold text-xl transition-colors shadow-lg active:scale-95"
-                    >
-                        決定
-                    </button>
+            <div id="interaction-container" class="flex flex-col gap-2">
+                <!-- Answer Preview Area -->
+                <div id="answer-controls" class="flex flex-col gap-3">
+                    <div class="flex gap-2 items-center">
+                        <div id="answer-display" class="flex-1 bg-slate-50 text-3xl h-14 flex items-center justify-center border-2 border-slate-200 rounded-xl font-bold text-slate-700">
+                            <!-- JSで更新 -->
+                        </div>
+                        <button onclick="clearAnswer()" class="bg-slate-200 text-slate-600 px-4 h-14 rounded-xl font-bold">
+                            消去
+                        </button>
+                        <button onclick="checkAnswer()" class="bg-indigo-600 text-white px-6 h-14 rounded-xl font-bold text-lg shadow-md active:scale-95">
+                            決定
+                        </button>
+                    </div>
+
+                    <!-- Custom Keypad -->
+                    <div class="grid grid-cols-5 gap-1.5">
+                        <button onclick="appendNum(1)" class="keypad-btn">1</button>
+                        <button onclick="appendNum(2)" class="keypad-btn">2</button>
+                        <button onclick="appendNum(3)" class="keypad-btn">3</button>
+                        <button onclick="appendNum(4)" class="keypad-btn">4</button>
+                        <button onclick="appendNum(5)" class="keypad-btn">5</button>
+                        <button onclick="appendNum(6)" class="keypad-btn">6</button>
+                        <button onclick="appendNum(7)" class="keypad-btn">7</button>
+                        <button onclick="appendNum(8)" class="keypad-btn">8</button>
+                        <button onclick="appendNum(9)" class="keypad-btn">9</button>
+                        <button onclick="appendNum(0)" class="keypad-btn">0</button>
+                    </div>
                 </div>
                 
-                <div id="feedback" class="hidden text-center p-4 rounded-2xl flex flex-col gap-3 border-2">
+                <div id="feedback" class="hidden text-center p-3 rounded-2xl flex flex-col gap-2 border-2">
                     <div id="feedback-text"></div>
-                    <button 
-                        id="next-btn"
-                        onclick="proceedToNext()" 
-                        class="bg-slate-800 hover:bg-slate-900 text-white w-full py-4 rounded-xl font-bold text-lg shadow-md"
-                    >
+                    <button onclick="proceedToNext()" class="bg-slate-800 text-white w-full py-3 rounded-xl font-bold shadow-md">
                         次の問題へ ➔
                     </button>
                 </div>
@@ -149,15 +169,15 @@
         </div>
 
         <!-- End Screen -->
-        <div id="end-screen" class="hidden text-center py-10">
-            <h2 class="text-4xl font-bold text-indigo-600 mb-4">終了！</h2>
-            <div class="text-6xl font-black mb-6 text-slate-800"><span id="final-score">0</span> / 20</div>
-            <p id="evaluation" class="text-xl text-slate-600 mb-8"></p>
-            <div class="flex flex-col gap-3 px-10">
-                <button onclick="startGame(currentLevel)" class="bg-indigo-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-indigo-500 transition-all shadow-lg">
+        <div id="end-screen" class="hidden text-center py-6">
+            <h2 class="text-3xl font-bold text-indigo-600 mb-2">終了！</h2>
+            <div class="text-5xl font-black mb-4 text-slate-800"><span id="final-score">0</span> / 20</div>
+            <p id="evaluation" class="text-sm text-slate-600 mb-6"></p>
+            <div class="flex flex-col gap-2">
+                <button onclick="startGame(currentLevel)" class="bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg">
                     もう一度挑戦
                 </button>
-                <button onclick="backToTitle()" class="bg-slate-100 text-slate-600 py-4 rounded-xl font-bold text-lg hover:bg-slate-200 transition-all">
+                <button onclick="backToTitle()" class="bg-slate-100 text-slate-600 py-4 rounded-xl font-bold">
                     メニューへ
                 </button>
             </div>
@@ -167,7 +187,7 @@
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const input = document.getElementById('answer-input');
+        const answerDisplay = document.getElementById('answer-display');
         const feedbackArea = document.getElementById('feedback');
         const answerControls = document.getElementById('answer-controls');
         
@@ -177,6 +197,7 @@
         let totalQuestions = 20;
         let correctCount = 0;
         let gridData = [];
+        let currentInput = "";
         
         const config = {
             easy: { size: 3, maxHeight: 2, density: 0.8, range: [3, 8] },
@@ -201,9 +222,7 @@
             canvas.width = size * window.devicePixelRatio;
             canvas.height = size * window.devicePixelRatio;
             ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-            
             tileSize = size / 13; 
-            
             if (gridData.length > 0) draw();
         }
 
@@ -235,43 +254,53 @@
         function nextQuestion() {
             feedbackArea.classList.add('hidden');
             answerControls.classList.remove('hidden');
-            input.value = '';
-            input.disabled = false;
+            currentInput = "";
+            updateAnswerDisplay();
             document.getElementById('current-q').innerText = currentQuestion;
             document.getElementById('score').innerText = score;
             generateProblem();
             draw();
-            setTimeout(() => input.focus(), 150);
+        }
+
+        function appendNum(n) {
+            if (currentInput.length < 3) {
+                currentInput += n;
+                updateAnswerDisplay();
+            }
+        }
+
+        function clearAnswer() {
+            currentInput = "";
+            updateAnswerDisplay();
+        }
+
+        function updateAnswerDisplay() {
+            answerDisplay.innerText = currentInput || "?";
+            answerDisplay.style.color = currentInput ? "#334155" : "#cbd5e1";
         }
 
         function generateProblem() {
             const cfg = config[currentLevel];
             const size = cfg.size;
             const startIdx = Math.floor((gridTotal - size) / 2);
-            
             gridData = Array(gridTotal).fill().map(() => Array(gridTotal).fill(0));
             correctCount = 0;
             
             for (let gx = startIdx; gx < startIdx + size; gx++) {
                 let maxHForThisColumn = Math.floor(Math.random() * cfg.maxHeight) + 1;
-                
                 for (let gz = startIdx; gz < startIdx + size; gz++) {
-                    // 階段状 & 接地 & 見える化
                     if (Math.random() > cfg.density && gz !== startIdx) {
                         gridData[gz][gx] = 0;
                         maxHForThisColumn = 0; 
                         continue;
                     }
-
                     const h = Math.floor(Math.random() * (maxHForThisColumn + 1));
                     const finalH = Math.max(gz === startIdx ? 1 : 0, h);
-                    
                     gridData[gz][gx] = finalH;
                     correctCount += finalH;
                     maxHForThisColumn = finalH;
                 }
             }
-
             if (correctCount < cfg.range[0] || correctCount > cfg.range[1]) {
                 generateProblem();
             }
@@ -280,17 +309,13 @@
         function toIso(gx, gy, gz) {
             const canvasSize = canvas.width / window.devicePixelRatio;
             const centerX = canvasSize / 2;
-            const centerY = canvasSize * 0.75; 
-            
+            const centerY = canvasSize * 0.7; 
             const cx = gx - (gridTotal / 2) + 0.5;
             const cz = gz - (gridTotal / 2) + 0.5;
-
             const cos30 = 0.866; 
             const sin30 = 0.5; 
-
             const x = (cx - cz) * (tileSize * cos30);
             const y = (cx + cz) * (tileSize * sin30) - (gy * tileSize);
-            
             return { x: centerX + x, y: centerY + y };
         }
 
@@ -298,9 +323,8 @@
             const cfg = config[currentLevel];
             const size = cfg.size;
             const startIdx = Math.floor((gridTotal - size) / 2);
-            ctx.strokeStyle = '#e2e8f0'; 
+            ctx.strokeStyle = '#f1f5f9'; 
             ctx.lineWidth = 1;
-
             for (let gz = startIdx; gz <= startIdx + size; gz++) {
                 for (let gx = startIdx; gx <= startIdx + size; gx++) {
                     if (gx < startIdx + size && gz < startIdx + size) {
@@ -314,7 +338,7 @@
                         ctx.lineTo(p3.x, p3.y);
                         ctx.lineTo(p4.x, p4.y);
                         ctx.closePath();
-                        ctx.fillStyle = '#fdfdfd';
+                        ctx.fillStyle = '#ffffff';
                         ctx.fill();
                         ctx.stroke();
                     }
@@ -330,7 +354,6 @@
             const strokeColor = '#334155';
             ctx.lineWidth = 1.2;
             ctx.lineJoin = 'round';
-
             // 右側面
             ctx.beginPath();
             ctx.moveTo(p.x, p.y - h + hh * 2);
@@ -342,7 +365,6 @@
             ctx.fill();
             ctx.strokeStyle = strokeColor;
             ctx.stroke();
-
             // 左側面
             ctx.beginPath();
             ctx.moveTo(p.x, p.y - h + hh * 2);
@@ -353,7 +375,6 @@
             ctx.fillStyle = '#e2e8f0'; 
             ctx.fill();
             ctx.stroke();
-
             // 上面
             ctx.beginPath();
             ctx.moveTo(p.x, p.y - h);
@@ -381,23 +402,20 @@
         }
 
         function checkAnswer() {
-            if (input.disabled) return;
-            let val = input.value.trim().replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
-            const userAns = parseInt(val);
-            if (isNaN(userAns)) return;
-
-            input.disabled = true;
+            if (currentInput === "") return;
+            const userAns = parseInt(currentInput);
+            
             answerControls.classList.add('hidden');
             feedbackArea.classList.remove('hidden');
             const feedbackText = document.getElementById('feedback-text');
 
             if (userAns === correctCount) {
                 score++;
-                feedbackArea.className = "text-center p-4 rounded-2xl flex flex-col gap-3 border-2 border-emerald-200 bg-emerald-50 text-emerald-800";
-                feedbackText.innerHTML = `<p class="text-3xl font-black bounce">正解！</p><p class="text-xl font-bold">${correctCount}個で合っています！</p>`;
+                feedbackArea.className = "text-center p-3 rounded-2xl flex flex-col gap-1 border-2 border-emerald-200 bg-emerald-50 text-emerald-800";
+                feedbackText.innerHTML = `<p class="text-2xl font-black bounce">正解！</p><p class="text-sm font-bold">${correctCount}個です！</p>`;
             } else {
-                feedbackArea.className = "text-center p-4 rounded-2xl flex flex-col gap-3 border-2 border-rose-200 bg-rose-50 text-rose-800";
-                feedbackText.innerHTML = `<p class="text-3xl font-black">おしい！</p><p class="text-xl">正解は <span class="text-4xl font-black underline">${correctCount}</span> 個でした。</p>`;
+                feedbackArea.className = "text-center p-3 rounded-2xl flex flex-col gap-1 border-2 border-rose-200 bg-rose-50 text-rose-800";
+                feedbackText.innerHTML = `<p class="text-2xl font-black">おしい！</p><p class="text-sm">正解は <span class="text-2xl font-black underline">${correctCount}</span> 個でした。</p>`;
             }
         }
 
@@ -417,13 +435,9 @@
             endScreen.classList.remove('hidden');
             document.getElementById('final-score').innerText = score;
             const ratio = score / totalQuestions;
-            let evalMsg = ratio === 1 ? "完璧！空間認識のマスターです！" : ratio >= 0.7 ? "すごい！かなり正確に把握できています。" : "練習あるのみ！繰り返し挑戦しましょう。";
+            let evalMsg = ratio === 1 ? "完璧！空間認識のマスターです！" : ratio >= 0.7 ? "すごい！かなり正確です。" : "繰り返し挑戦しましょう！";
             document.getElementById('evaluation').innerText = evalMsg;
         }
-
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') checkAnswer();
-        });
     </script>
 </body>
 </html>
